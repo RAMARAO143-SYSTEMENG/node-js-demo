@@ -1,0 +1,44 @@
+name: Deploy to Elastic Beanstalk
+ 
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+ 
+permissions:
+  id-token: write
+  contents: read
+ 
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+ 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+ 
+      - run: npm ci
+ 
+      - name: Setup Python (required by EB CLI)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+ 
+      - name: Install EB CLI
+        run: pip install awsebcli
+ 
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::030179310796:role/Github_actions
+          aws-region: ap-south-2
+ 
+      - name: Deploy to Elastic Beanstalk
+        run: |
+          eb deploy node-js-demo-dev \
+            --label app-${{ github.sha }} \
+            --message 'Deployed from GH Actions ${{ github.run_id }}'
