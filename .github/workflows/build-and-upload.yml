@@ -12,7 +12,7 @@ permissions:
  
 env:
   AWS_REGION: ap-south-2
-  S3_BUCKET: lab-<account-id>-artifacts
+  S3_BUCKET: lab-030179310796-artifacts
  
 jobs:
   build-upload:
