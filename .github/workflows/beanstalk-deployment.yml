@@ -1,0 +1,75 @@
+name: Deploy to AWS Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+    #   - name: Install dependencies
+    #     run: npm ci
+
+    #   - name: Run tests
+    #     run: npm test --if-present
+
+    #   - name: Generate deployment package
+    #     run: |
+    #       zip -r deploy.zip . \
+    #         --exclude "*.git*" \
+    #         --exclude "node_modules/*" \
+    #         --exclude ".github/*" \
+    #         --exclude "*.zip"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: "arn:aws:iam::747208289355:role/githubactions-newrole"
+          aws-region: ap-south-2
+
+    #   - name: Generate version label
+    #     id: version
+    #     run: echo "label=${{ github.sha }}-$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
+    #   - name: Upload deployment package to S3
+    #     run: |
+    #       aws s3 cp deploy.zip s3://${{ secrets.EB_S3_BUCKET }}/${{ secrets.EB_APP_NAME }}/${{ steps.version.outputs.label }}.zip
+
+    #   - name: Create new Elastic Beanstalk application version
+    #     run: |
+    #       aws elasticbeanstalk create-application-version \
+    #         --application-name ${{ secrets.EB_APP_NAME }} \
+    #         --version-label ${{ steps.version.outputs.label }} \
+    #         --source-bundle S3Bucket=${{ secrets.EB_S3_BUCKET }},S3Key=${{ secrets.EB_APP_NAME }}/${{ steps.version.outputs.label }}.zip \
+    #         --description "Deploy from GitHub commit ${{ github.sha }}"
+
+    #   - name: Deploy to Elastic Beanstalk environment
+    #     run: |
+    #       aws elasticbeanstalk update-environment \
+    #         --application-name ${{ secrets.EB_APP_NAME }} \
+    #         --environment-name ${{ secrets.EB_ENV_NAME }} \
+    #         --version-label ${{ steps.version.outputs.label }}
+
+    #   - name: Wait for environment to be ready
+    #     run: |
+    #       aws elasticbeanstalk wait environment-updated \
+    #         --application-name ${{ secrets.EB_APP_NAME }} \
+    #         --environment-names ${{ secrets.EB_ENV_NAME }}
+    #       echo "Deployment complete!"
